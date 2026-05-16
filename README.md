@@ -136,6 +136,7 @@ watchOS シミュレータが未インストールなら `xcodebuild -downloadPl
 | 7 | `MPRemoteCommandCenter` の play/pause/next ハンドラ登録 | コマンドは到達するが、`AVAudioSession.activate()` が `false` を返して再開不可 |
 | 8 | `AVAudioSession.interruptionNotification` で `shouldResume` 検知 → 自動再開 | 文字盤戻りの場合は interruption notification 自体が来ない |
 | 9 | `AVAudioSession.routeChangeNotification` で route 変化検知 → 自動再開 | 同上 |
+| 10 | **`HKWorkoutSession` ハック**（Workoutとして起動して背景実行権を獲得する裏技）。`WKBackgroundModes = workout-processing` + HealthKit entitlement + HKLiveWorkoutBuilder で実機検証 | **効果なし。** `HKWorkoutSession` が active な状態でも、文字盤に戻ると AVPlayer は停止した。なお本実装は App Store 審査でリジェクトされる可能性が高いハックなので、検証後にコードから除去した（git 履歴には残る） |
 
 ### 診断ログから判明した核心
 
@@ -216,9 +217,11 @@ watchOS の制限を受け入れた上で、UX としては以下が現状最適
 3. **Watch アプリに戻る** → 即再生再開（即時）
 4. **AirPods は Watch 専用にする**（iPhone との二股だと route change で更に切れやすい）
 
-### 試したい候補（未実装、TODO）
+### 受け入れた制約
 
-- **`HKWorkoutSession` ハック**: Workout として起動することで背景実行権を得る方法。Apple は本来用途外として App Store 審査でリジェクトする可能性があり、ロジック的にも重いため未実装。
+文字盤に戻ると音楽が止まるのは仕様として受け入れる。実用上は:
+- **手首下ろしのスリープ中は再生継続**（散歩・ジムで使う想定なら大半のケースをカバー）
+- 一時停止したくないシーンでは **アプリを前面に保ったままディスプレイをスリープ** にする運用
 
 ---
 
