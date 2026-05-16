@@ -26,20 +26,28 @@ struct ContentView: View {
                                     Text(byteString(item.fileSize)).font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer()
-                                Button {
-                                    session.sendFile(item.url)
+                                Menu {
+                                    Button {
+                                        session.sendFile(item.url)
+                                    } label: {
+                                        Label("Watchへ送信", systemImage: "arrow.up.to.line")
+                                    }
+                                    Button(role: .destructive) {
+                                        session.requestDeleteFromWatch(fileName: item.url.lastPathComponent)
+                                    } label: {
+                                        Label("Watchから削除", systemImage: "applewatch.slash")
+                                    }
                                 } label: {
-                                    Label("Watchへ", systemImage: "applewatch")
-                                        .labelStyle(.titleAndIcon)
+                                    Image(systemName: "applewatch")
+                                        .padding(8)
                                 }
-                                .buttonStyle(.borderedProminent)
-                                .controlSize(.small)
+                                .menuStyle(.borderlessButton)
                             }
                             .swipeActions {
                                 Button(role: .destructive) {
                                     library.remove(item)
                                 } label: {
-                                    Label("削除", systemImage: "trash")
+                                    Label("ローカル削除", systemImage: "trash")
                                 }
                             }
                         }

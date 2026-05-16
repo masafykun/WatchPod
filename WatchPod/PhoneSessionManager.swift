@@ -31,6 +31,52 @@ final class PhoneSessionManager: NSObject, ObservableObject {
         lastTransferStatus = "Sending \(url.lastPathComponent)…"
     }
 
+    /// Watch側にファイル削除リクエストを送る
+    func requestDeleteFromWatch(fileName: String) {
+        guard let session, session.activationState == .activated else {
+            lastTransferStatus = "Session not active"
+            return
+        }
+        guard session.isReachable else {
+            lastTransferStatus = "Watch unreachable (アプリ起動中か確認)"
+            return
+        }
+        lastTransferStatus = "Watchから削除中: \(fileName)…"
+        session.sendMessage(
+            ["action": "delete", "name": fileName],
+            replyHandler: { reply in
+                Task { @MainActor in
+                    if let status = reply["status"] as? String, status == "deleted" {
+                        self.lastTransferStatus = "Watch削除完了: \(fileName) ✓"
+                    } else if let status = reply["status"] as? String, status == "not_found" {
+                        self.lastTransferStatus = "Watchに無し: \(fileName)"
+                    } else {
+                        self.lastTransferStatus = "Watch返信: \(reply)"
+                    }
+                }
+            },
+            errorHandler: { error in
+                Task { @MainActor in
+                    self.lastTransferStatus = "削除失敗: \(error.localizedDescription)"
+                }
+            }
+        )
+    }
+
+    /// Watch側にプレイリスト一覧を送信（applicationContext経由）
+    func syncPlaylists(_ playlists: [Playlist]) {
+        guard let session, session.activationState == .activated else { return }
+        do {
+            let data = try JSONEncoder().encode(playlists)
+            try session.updateApplicationContext([
+                "playlists": data
+            ])
+            lastTransferStatus = "プレイリスト同期 (\(playlists.count)件)"
+        } catch {
+            lastTransferStatus = "同期失敗: \(error.localizedDescription)"
+        }
+    }
+
     private func refreshState() {
         guard let session else { return }
         isReachable = session.isReachable
