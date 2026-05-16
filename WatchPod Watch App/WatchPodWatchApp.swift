@@ -4,34 +4,43 @@ import SwiftUI
 struct WatchPodWatchApp: App {
     @StateObject private var session = WatchSessionManager()
     @StateObject private var player = AudioPlayerManager()
-    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var weather = WeatherManager()
 
     var body: some Scene {
         WindowGroup {
             WatchRootView()
                 .environmentObject(session)
                 .environmentObject(player)
+                .environmentObject(weather)
                 .onAppear {
                     session.activate()
                     player.configureAudioSession()
+                    weather.start()
                 }
-        }
-        .onChange(of: scenePhase) { newPhase in
-            switch newPhase {
-            case .active: player.recordScenePhase("active")
-            case .inactive: player.recordScenePhase("inactive")
-            case .background: player.recordScenePhase("background")
-            @unknown default: player.recordScenePhase("unknown")
-            }
         }
     }
 }
 
+enum WatchPage: Hashable {
+    case weather, clock, songs, playlists
+}
+
 struct WatchRootView: View {
+    @State private var selectedPage: WatchPage = .clock
+
     var body: some View {
-        TabView {
+        TabView(selection: $selectedPage) {
+            WeatherView()
+                .tag(WatchPage.weather)
+
+            ClockView()
+                .tag(WatchPage.clock)
+
             WatchContentView()
+                .tag(WatchPage.songs)
+
             WatchPlaylistsView()
+                .tag(WatchPage.playlists)
         }
         .tabViewStyle(.page)
     }

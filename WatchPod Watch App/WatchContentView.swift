@@ -15,44 +15,13 @@ struct WatchContentView: View {
                     .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                 }
 
-                Section {
-                    Button {
-                        Task { await player.presentOutputPicker() }
-                    } label: {
-                        HStack {
-                            Image(systemName: outputIcon)
-                            VStack(alignment: .leading) {
-                                Text("出力先")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                                Text(player.currentOutputName)
-                                    .font(.caption)
-                                    .lineLimit(1)
-                            }
-                        }
-                    }
-                    NavigationLink {
-                        DiagnosticView()
-                    } label: {
-                        Label("診断ログ", systemImage: "ladybug")
-                            .font(.caption)
-                    }
-                }
-
                 if session.tracks.isEmpty {
                     Section {
-                        VStack(spacing: 6) {
-                            Image(systemName: "music.note")
-                                .font(.title2)
-                                .foregroundStyle(.secondary)
-                            Text("曲なし").font(.headline)
-                            Text("iPhoneアプリから\nWatchへ送信してください")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                        ContentUnavailableView(
+                            "曲なし",
+                            systemImage: "music.note",
+                            description: Text("iPhoneアプリから\nWatchへ送信してください")
+                        )
                         .listRowBackground(Color.clear)
                     }
                 } else {
@@ -64,7 +33,7 @@ struct WatchContentView: View {
                 }
             }
             .listStyle(.carousel)
-            .navigationTitle("WatchPod")
+            .navigationTitle("音楽")
             .alert("エラー",
                    isPresented: .constant(player.errorMessage != nil)) {
                 Button("OK") { player.errorMessage = nil }
@@ -72,14 +41,6 @@ struct WatchContentView: View {
                 Text(player.errorMessage ?? "")
             }
         }
-    }
-
-    private var outputIcon: String {
-        let name = player.currentOutputName.lowercased()
-        if name.contains("airpod") { return "airpods" }
-        if name.contains("speaker") || name.contains("watch") { return "applewatch" }
-        if name.contains("bluetooth") || name.contains("headphone") { return "headphones" }
-        return "speaker.wave.2"
     }
 
     @ViewBuilder
