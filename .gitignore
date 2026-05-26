@@ -37,3 +37,8 @@ fastlane/test_output
 *.swp
 .vscode/
 .idea/
+
+# Claude Code (AI agent local context — never publish)
+CLAUDE.md
+BUILD_LOG.md
+.claude/
